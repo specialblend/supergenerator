@@ -1,11 +1,11 @@
 /* eslint-disable no-sync */
-require('./console');
 
 import * as R from 'ramda';
 import Generator from 'yeoman-generator';
 import chalk from 'chalk';
 import yosay from 'yosay';
 import assert from 'assert';
+import log from './log';
 
 const isEmptyOrNil = R.either(R.isEmpty, R.isNil);
 
@@ -38,28 +38,28 @@ export default (root, resolvers = {}) => {
             this.context = {};
         }
         async prompting() {
-            console.debug('Checking for prompts');
+            log.debug('Checking for prompts');
             const prompts = resolvePrompts.bind(this)();
             if (R.is(Array, prompts)) {
                 if (!R.isEmpty(prompts)) {
-                    console.debug(`found (${prompts.length}) prompts`);
+                    log.debug(`found (${prompts.length}) prompts`);
                     this.context = await this.prompt(prompts);
                 }
                 return;
             }
-            console.error('Invalid prompts');
+            log.error('Invalid prompts');
         }
         initializing() {
-            console.debug('Initializing generator');
+            log.debug('Initializing generator');
             this.sourceRoot(root);
         }
         writing() {
-            console.debug('Writing files');
+            log.debug('Writing files');
             this.setupPackageJSON();
             this.copyTemplateFiles();
         }
         end() {
-            console.debug('Finishing setup');
+            log.debug('Finishing setup');
             this.finalizeSetup();
             this.installFreshDependencies();
             this.goodbye();
@@ -73,11 +73,11 @@ export default (root, resolvers = {}) => {
             const packageJSON = resolvePackageJSON.bind(this)();
             assert(R.is(Object, packageJSON), 'resolvePackageJSON must return an Object');
             if (!R.isEmpty(packageJSON)) {
-                console.debug('setting up package.json');
+                log.debug('setting up package.json');
                 this.fs.extendJSON(this.destinationPath('package.json'), packageJSON);
                 return;
             }
-            console.warn('No package.json configuration');
+            log.warn('No package.json configuration');
         }
 
         /**
@@ -88,7 +88,7 @@ export default (root, resolvers = {}) => {
             const files = resolveFiles.bind(this)();
             assert(R.is(Array, files), 'resolveFiles must return an Array');
             if (!R.isEmpty(files)) {
-                console.info('Copying template files');
+                log.info('Copying template files');
                 files.map(
                     file => {
                         if (Array.isArray(file)) {
@@ -101,7 +101,7 @@ export default (root, resolvers = {}) => {
                 );
                 return;
             }
-            console.warn('No template files to copy');
+            log.warn('No template files to copy');
         }
 
         /**
@@ -117,7 +117,7 @@ export default (root, resolvers = {}) => {
          * @returns {void}
          */
         installFreshDependencies() {
-            console.debug('Installing fresh dependencies');
+            log.debug('Installing fresh dependencies');
             const freshDependencies = resolveFreshDependencies.bind(this)();
             const freshDevDependencies = resolveFreshDevDependencies.bind(this)();
             assert(R.is(Array, freshDependencies), 'resolveFreshDependencies must return an Array');
@@ -132,7 +132,7 @@ export default (root, resolvers = {}) => {
          */
         goodbye() {
             yosay(chalk.hex('#b88a5c')(`Thanks for using ${chalk.hex('#ffc66d')('@specialblend/supergenerator')}`));
-            console.info('https://github.com/specialblend/supergenerator');
+            log.info('https://github.com/specialblend/supergenerator');
         }
     };
 };
