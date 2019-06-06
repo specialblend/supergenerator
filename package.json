@@ -16,7 +16,7 @@
   "files": [
     "dist"
   ],
-  "name": "supergenerator",
+  "name": "@specialblend/supergenerator",
   "description": "A yeoman generator factory",
   "repository": {
     "type": "git",
