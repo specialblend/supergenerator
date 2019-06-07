@@ -8,12 +8,12 @@ describe('createGenerator', () => {
     describe('when called', () => {
         describe('throws expected error', () => {
             test('when root is empty or nil', () => {
-                expect(() => createGenerator('')).toThrow('Root must be non-empty/nil');
-                expect(() => createGenerator(null)).toThrow('Root must be non-empty/nil');
+                expect(() => createGenerator('', {})).toThrow('Root must be non-empty/nil');
+                expect(() => createGenerator(null, {})).toThrow('Root must be non-empty/nil');
             });
         });
         describe('result', () => {
-            const generator = createGenerator(Generator, 'testRoot');
+            const generator = createGenerator('testRoot', {});
             test('is a function', () => {
                 expect(generator).toBeFunction();
             });

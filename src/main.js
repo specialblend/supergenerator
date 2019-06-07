@@ -3,6 +3,9 @@ const Generator = require('yeoman-generator');
 const R = require('ramda');
 const chalk = require('chalk');
 const yosay = require('yosay');
+const assert = require('assert');
+
+const isEmptyOrNil = R.either(R.isEmpty, R.isNil);
 
 const { info, warn, error, debug } = console;
 
@@ -18,13 +21,6 @@ console.warn = R.compose(warn, chalk.hex(orange));
 console.error = R.compose(error, chalk.bgHex(red).white);
 console.debug = R.compose(debug, chalk.hex(gray));
 
-const __initializeSetup__ = Symbol('__initializeSetup__');
-const __setupPackageJSON__ = Symbol('__setupPackageJSON__');
-const __copyTemplateFiles__ = Symbol('__copyTemplateFiles__');
-const __finalizeSetup__ = Symbol('__finalizeSetup__');
-const __installFreshDependencies__ = Symbol('__installFreshDependencies__');
-const __goodbye__ = Symbol('__goodbye__');
-
 const createGenerator = (
     root,
     {
@@ -34,6 +30,7 @@ const createGenerator = (
         resolveFreshDependencies = R.always([]),
         resolveFreshDevDependencies = R.always([]),
     }) => {
+    assert(!isEmptyOrNil(root), 'Root must be non-empty/nil');
     return class extends Generator {
         constructor(...props) {
             super(...props);
@@ -55,23 +52,23 @@ const createGenerator = (
         }
         initializing() {
             console.log('initializing generator');
-            this[__initializeSetup__]();
+            this.initializeSetup();
         }
         writing() {
-            this[__setupPackageJSON__]();
-            this[__copyTemplateFiles__]();
+            this.setupPackageJSON();
+            this.copyTemplateFiles();
         }
         end() {
-            this[__finalizeSetup__]();
-            this[__installFreshDependencies__]();
-            this[__goodbye__]();
+            this.finalizeSetup();
+            this.installFreshDependencies();
+            this.goodbye();
         }
 
         /**
          * Initialize setup
          * @returns {void}
          */
-        [__initializeSetup__]() {
+        initializeSetup() {
             this.sourceRoot(root);
         }
 
@@ -79,7 +76,7 @@ const createGenerator = (
          * Merge template package.json with current package.json
          * @returns {void}
          */
-        [__setupPackageJSON__]() {
+        setupPackageJSON() {
             const packageJSON = resolvePackageJSON.bind(this)();
             if (R.is(Object, packageJSON) && !R.isEmpty(packageJSON)) {
                 console.debug('setting up package.json');
@@ -93,7 +90,7 @@ const createGenerator = (
          * Copy template files
          * @returns {void}
          */
-        [__copyTemplateFiles__]() {
+        copyTemplateFiles() {
             const files = resolveFiles.bind(this)();
             if (R.is(Array, files)) {
                 if (!R.isEmpty(files)) {
@@ -120,7 +117,7 @@ const createGenerator = (
          * Finish setting up
          * @returns {void}
          */
-        [__finalizeSetup__]() {
+        finalizeSetup() {
             this.spawnCommandSync('npm', ['init']);
         }
 
@@ -128,7 +125,7 @@ const createGenerator = (
          * Install fresh dependencies
          * @returns {void}
          */
-        [__installFreshDependencies__]() {
+        installFreshDependencies() {
             console.debug('installing fresh dependencies');
             if (R.is(Function, resolveFreshDependencies)) {
                 const freshDependencies = resolveFreshDependencies.bind(this)();
@@ -148,7 +145,7 @@ const createGenerator = (
          * Print goodbye
          * @returns {void}
          */
-        [__goodbye__]() {
+        goodbye() {
             yosay(chalk.hex('#b88a5c')(`Thanks for using the ${chalk.hex('#ffc66d')('@specialblend/supergenerator')}`));
             console.info('https://github.com/specialblend/supergenerator');
         }
