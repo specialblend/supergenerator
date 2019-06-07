@@ -73,7 +73,7 @@ export default (root, resolvers = {}) => {
             const packageJSON = resolvePackageJSON.bind(this)();
             assert(R.is(Object, packageJSON), 'resolvePackageJSON must return an Object');
             if (!R.isEmpty(packageJSON)) {
-                log.debug('setting up package.json');
+                log.debug('Setting up package.json');
                 this.fs.extendJSON(this.destinationPath('package.json'), packageJSON);
                 return;
             }
@@ -122,8 +122,8 @@ export default (root, resolvers = {}) => {
             const freshDevDependencies = resolveFreshDevDependencies.bind(this)();
             assert(R.is(Array, freshDependencies), 'resolveFreshDependencies must return an Array');
             assert(R.is(Array, freshDevDependencies), 'resolveFreshDevDependencies must return an Array');
-            R.unless(R.isEmpty, this.npmInstall)(freshDependencies);
-            R.unless(R.isEmpty, this.npmInstall)(freshDevDependencies);
+            R.unless(R.isEmpty, this.npmInstall.bind(this))(freshDependencies);
+            R.unless(R.isEmpty, this.npmInstall.bind(this))(freshDevDependencies);
         }
 
         /**
