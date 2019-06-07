@@ -109,7 +109,7 @@ export default (root, resolvers = {}) => {
          * @returns {void}
          */
         finalizeSetup() {
-            // this.spawnCommandSync('npm', ['init']);
+            this.spawnCommandSync('npm', ['init']);
         }
 
         /**
@@ -122,8 +122,12 @@ export default (root, resolvers = {}) => {
             const freshDevDependencies = resolveFreshDevDependencies.bind(this)();
             assert(R.is(Array, freshDependencies), 'resolveFreshDependencies must return an Array');
             assert(R.is(Array, freshDevDependencies), 'resolveFreshDevDependencies must return an Array');
-            R.unless(R.isEmpty, this.npmInstall.bind(this))(freshDependencies);
-            R.unless(R.isEmpty, this.npmInstall.bind(this))(freshDevDependencies);
+            if (!isEmptyOrNil(freshDependencies)) {
+                this.npmInstall(freshDependencies);
+            }
+            if (!isEmptyOrNil(freshDevDependencies)) {
+                this.npmInstall(freshDevDependencies);
+            }
         }
 
         /**
