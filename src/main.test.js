@@ -11,15 +11,6 @@ describe('createGenerator', () => {
                 expect(() => createGenerator('')).toThrow('Root must be non-empty/nil');
                 expect(() => createGenerator(null)).toThrow('Root must be non-empty/nil');
             });
-            test.each([
-                'resolvePackageJSON',
-                'resolveFiles',
-                'resolvePrompts',
-                'resolveFreshDependencies',
-                'resolveFreshDevDependencies',
-            ])('when %p is not a Function', resolverName => {
-                expect(() => createGenerator(Generator, 'root', { [resolverName]: true })).toThrow(`${resolverName} must be a function`);
-            });
         });
         describe('result', () => {
             const generator = createGenerator(Generator, 'testRoot');

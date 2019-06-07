@@ -1,3 +1,4 @@
+/* eslint-disable no-sync */
 const Generator = require('yeoman-generator');
 const R = require('ramda');
 const chalk = require('chalk');
@@ -68,6 +69,7 @@ const createGenerator = (
 
         /**
          * Initialize setup
+         * @returns {void}
          */
         [__initializeSetup__]() {
             this.sourceRoot(root);
@@ -75,6 +77,7 @@ const createGenerator = (
 
         /**
          * Merge template package.json with current package.json
+         * @returns {void}
          */
         [__setupPackageJSON__]() {
             const packageJSON = resolvePackageJSON.bind(this)();
@@ -88,6 +91,7 @@ const createGenerator = (
 
         /**
          * Copy template files
+         * @returns {void}
          */
         [__copyTemplateFiles__]() {
             const files = resolveFiles.bind(this)();
@@ -114,6 +118,7 @@ const createGenerator = (
 
         /**
          * Finish setting up
+         * @returns {void}
          */
         [__finalizeSetup__]() {
             this.spawnCommandSync('npm', ['init']);
@@ -121,6 +126,7 @@ const createGenerator = (
 
         /**
          * Install fresh dependencies
+         * @returns {void}
          */
         [__installFreshDependencies__]() {
             console.debug('installing fresh dependencies');
@@ -140,10 +146,11 @@ const createGenerator = (
 
         /**
          * Print goodbye
+         * @returns {void}
          */
         [__goodbye__]() {
-            yosay(chalk.hex('#b88a5c')(`Thanks for using the ${chalk.hex('#ffc66d')('@specialblend/node')} generator`));
-            console.info('https://github.com/specialblend/generator-node');
+            yosay(chalk.hex('#b88a5c')(`Thanks for using the ${chalk.hex('#ffc66d')('@specialblend/supergenerator')}`));
+            console.info('https://github.com/specialblend/supergenerator');
         }
     };
 };
