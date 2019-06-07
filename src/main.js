@@ -109,7 +109,7 @@ export default (root, resolvers = {}) => {
          * @returns {void}
          */
         finalizeSetup() {
-            this.spawnCommandSync('npm', ['init']);
+            // this.spawnCommandSync('npm', ['init']);
         }
 
         /**
