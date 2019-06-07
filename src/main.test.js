@@ -18,15 +18,15 @@ describe('createGenerator', () => {
                 'resolveFreshDependencies',
                 'resolveFreshDevDependencies',
             ])('when %p is not a Function', resolverName => {
-                expect(() => createGenerator('root', { [resolverName]: true })).toThrow(`${resolverName} must be a function`);
+                expect(() => createGenerator(Generator, 'root', { [resolverName]: true })).toThrow(`${resolverName} must be a function`);
             });
         });
         describe('result', () => {
-            const generator = createGenerator('testRoot');
+            const generator = createGenerator(Generator, 'testRoot');
             test('is a function', () => {
                 expect(generator).toBeFunction();
             });
-            test('is a class that extends Yeoman generator', () => {
+            test('extends provided generator', () => {
                 expect(generator.prototype).toBeInstanceOf(Generator);
             });
             test('has expected class methods', () => {

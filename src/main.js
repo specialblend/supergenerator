@@ -1,7 +1,7 @@
 /* eslint-disable no-sync */
 
 import * as R from 'ramda';
-import Generator from 'yeoman-generator';
+// import Generator from 'yeoman-generator';
 import chalk from 'chalk';
 import yosay from 'yosay';
 import assert from 'assert';
@@ -17,7 +17,7 @@ const defaults = {
     resolveFreshDevDependencies: R.always([]),
 };
 
-export default (root, resolvers = {}) => {
+export default (Generator, root, resolvers = {}) => {
     assert(!isEmptyOrNil(root), 'Root must be non-empty/nil');
     const normalizedResolvers = R.mergeRight(defaults, resolvers);
     const {
