@@ -1,142 +1,139 @@
-/* eslint-disable no-sync */
+require('./console');
 
-import * as R from 'ramda';
-// import Generator from 'yeoman-generator';
-import chalk from 'chalk';
-import yosay from 'yosay';
-import assert from 'assert';
-import log from './log';
+const Generator = require('yeoman-generator');
+const R = require('ramda');
+const chalk = require('chalk');
+const yosay = require('yosay');
 
-const isEmptyOrNil = R.either(R.isEmpty, R.isNil);
+const __initializeSetup__ = Symbol('__initializeSetup__');
+const __setupPackageJSON__ = Symbol('__setupPackageJSON__');
+const __copyTemplateFiles__ = Symbol('__copyTemplateFiles__');
+const __finalizeSetup__ = Symbol('__finalizeSetup__');
+const __installFreshDependencies__ = Symbol('__installFreshDependencies__');
+const __goodbye__ = Symbol('__goodbye__');
 
-const defaults = {
-    resolvePackageJSON: R.always({}),
-    resolveFiles: R.always([]),
-    resolvePrompts: R.always([]),
-    resolveFreshDependencies: R.always([]),
-    resolveFreshDevDependencies: R.always([]),
-};
-
-export default (Generator, root, resolvers = {}) => {
-    assert(!isEmptyOrNil(root), 'Root must be non-empty/nil');
-    const normalizedResolvers = R.mergeRight(defaults, resolvers);
-    const {
-        resolvePackageJSON,
-        resolveFiles,
-        resolvePrompts,
-        resolveFreshDependencies,
-        resolveFreshDevDependencies,
-    } = normalizedResolvers;
-    assert(R.is(Function, resolvePackageJSON), 'resolvePackageJSON must be a function');
-    assert(R.is(Function, resolveFiles), 'resolveFiles must be a function');
-    assert(R.is(Function, resolvePrompts), 'resolvePrompts must be a function');
-    assert(R.is(Function, resolveFreshDependencies), 'resolveFreshDependencies must be a function');
-    assert(R.is(Function, resolveFreshDevDependencies), 'resolveFreshDevDependencies must be a function');
+const createGenerator = (
+    root,
+    {
+        resolvePackageJSON = R.always({}),
+        resolveFiles = R.always([]),
+        resolvePrompts = R.always([]),
+        resolveFreshDependencies = R.always([]),
+        resolveFreshDevDependencies = R.always([]),
+    }) => {
     return class extends Generator {
         constructor(...props) {
             super(...props);
             this.context = {};
         }
         async prompting() {
-            log.debug('Checking for prompts');
-            const prompts = resolvePrompts.bind(this)();
-            if (R.is(Array, prompts)) {
-                if (!R.isEmpty(prompts)) {
-                    log.debug(`found (${prompts.length}) prompts`);
-                    this.context = await this.prompt(prompts);
+            if (R.is(Function, resolvePrompts)) {
+                const prompts = resolvePrompts.bind(this)();
+                if (R.is(Array, prompts)) {
+                    if (!R.isEmpty(prompts)) {
+                        console.debug(`found (${prompts.length}) prompts`);
+                        this.context = await this.prompt(prompts);
+                    }
+                    return;
                 }
+                console.error('invalid prompts');
                 return;
             }
-            log.error('Invalid prompts');
         }
         initializing() {
-            log.debug('Initializing generator');
-            this.sourceRoot(root);
+            console.log('initializing generator');
+            this[__initializeSetup__]();
         }
         writing() {
-            log.debug('Writing files');
-            this.setupPackageJSON();
-            this.copyTemplateFiles();
+            this[__setupPackageJSON__]();
+            this[__copyTemplateFiles__]();
         }
         end() {
-            log.debug('Finishing setup');
-            this.finalizeSetup();
-            this.installFreshDependencies();
-            this.goodbye();
+            this[__finalizeSetup__]();
+            this[__installFreshDependencies__]();
+            this[__goodbye__]();
+        }
+
+        /**
+         * Initialize setup
+         */
+        [__initializeSetup__]() {
+            this.sourceRoot(root);
         }
 
         /**
          * Merge template package.json with current package.json
-         * @returns {void}
          */
-        setupPackageJSON() {
+        [__setupPackageJSON__]() {
             const packageJSON = resolvePackageJSON.bind(this)();
-            assert(R.is(Object, packageJSON), 'resolvePackageJSON must return an Object');
-            if (!R.isEmpty(packageJSON)) {
-                log.debug('Setting up package.json');
+            if (R.is(Object, packageJSON) && !R.isEmpty(packageJSON)) {
+                console.debug('setting up package.json');
                 this.fs.extendJSON(this.destinationPath('package.json'), packageJSON);
                 return;
             }
-            log.warn('No package.json configuration');
+            console.warn('no package.json configuration');
         }
 
         /**
          * Copy template files
-         * @returns {void}
          */
-        copyTemplateFiles() {
+        [__copyTemplateFiles__]() {
             const files = resolveFiles.bind(this)();
-            assert(R.is(Array, files), 'resolveFiles must return an Array');
-            if (!R.isEmpty(files)) {
-                log.info('Copying template files');
-                files.map(
-                    file => {
-                        if (Array.isArray(file)) {
-                            const [src, dest] = file;
-                            this.fs.copyTpl(this.templatePath(src), this.destinationPath(dest), this.context);
-                            return;
-                        }
-                        this.fs.copyTpl(this.templatePath(file), this.destinationPath(file), this.context);
-                    },
-                );
+            if (R.is(Array, files)) {
+                if (!R.isEmpty(files)) {
+                    console.info('copying template files');
+                    files.map(
+                        file => {
+                            if (Array.isArray(file)) {
+                                const [src, dest] = file;
+                                this.fs.copyTpl(this.templatePath(src), this.destinationPath(dest), this.context);
+                                return;
+                            }
+                            this.fs.copyTpl(this.templatePath(file), this.destinationPath(file), this.context);
+                        },
+                    );
+                    return;
+                }
+                console.warn('no template files to copy');
                 return;
             }
-            log.warn('No template files to copy');
+            console.error('invalid files');
         }
 
         /**
          * Finish setting up
-         * @returns {void}
          */
-        finalizeSetup() {
+        [__finalizeSetup__]() {
             this.spawnCommandSync('npm', ['init']);
         }
 
         /**
          * Install fresh dependencies
-         * @returns {void}
          */
-        installFreshDependencies() {
-            log.debug('Installing fresh dependencies');
-            const freshDependencies = resolveFreshDependencies.bind(this)();
-            const freshDevDependencies = resolveFreshDevDependencies.bind(this)();
-            assert(R.is(Array, freshDependencies), 'resolveFreshDependencies must return an Array');
-            assert(R.is(Array, freshDevDependencies), 'resolveFreshDevDependencies must return an Array');
-            if (!isEmptyOrNil(freshDependencies)) {
-                this.npmInstall(freshDependencies);
+        [__installFreshDependencies__]() {
+            console.debug('installing fresh dependencies');
+            if (R.is(Function, resolveFreshDependencies)) {
+                const freshDependencies = resolveFreshDependencies.bind(this)();
+                if (R.is(Array, freshDependencies)) {
+                    this.npmInstall(freshDependencies);
+                }
             }
-            if (!isEmptyOrNil(freshDevDependencies)) {
-                this.npmInstall(freshDevDependencies);
+            if (R.is(Function, resolveFreshDevDependencies)) {
+                const freshDevDependencies = resolveFreshDevDependencies.bind(this)();
+                if (R.is(Array, freshDevDependencies)) {
+                    this.npmInstall(freshDevDependencies, { 'save-dev': true });
+                }
             }
         }
 
         /**
          * Print goodbye
-         * @returns {void}
          */
-        goodbye() {
-            yosay(chalk.hex('#b88a5c')(`Thanks for using ${chalk.hex('#ffc66d')('@specialblend/supergenerator')}`));
-            log.info('https://github.com/specialblend/supergenerator');
+        [__goodbye__]() {
+            yosay(chalk.hex('#b88a5c')(`Thanks for using the ${chalk.hex('#ffc66d')('@specialblend/node')} generator`));
+            console.info('https://github.com/specialblend/generator-node');
         }
     };
 };
+
+module.exports = createGenerator;
