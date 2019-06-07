@@ -21,6 +21,13 @@ console.warn = R.compose(warn, chalk.hex(orange));
 console.error = R.compose(error, chalk.bgHex(red).white);
 console.debug = R.compose(debug, chalk.hex(gray));
 
+const __initializeSetup__ = Symbol('__initializeSetup__');
+const __setupPackageJSON__ = Symbol('__setupPackageJSON__');
+const __copyTemplateFiles__ = Symbol('__copyTemplateFiles__');
+const __finalizeSetup__ = Symbol('__finalizeSetup__');
+const __installFreshDependencies__ = Symbol('__installFreshDependencies__');
+const __goodbye__ = Symbol('__goodbye__');
+
 const createGenerator = (
     root,
     {
@@ -52,31 +59,29 @@ const createGenerator = (
         }
         initializing() {
             console.log('initializing generator');
-            this.initializeSetup();
+            this[__initializeSetup__]();
         }
         writing() {
-            this.setupPackageJSON();
-            this.copyTemplateFiles();
+            this[__setupPackageJSON__]();
+            this[__copyTemplateFiles__]();
         }
         end() {
-            this.finalizeSetup();
-            this.installFreshDependencies();
-            this.goodbye();
+            this[__finalizeSetup__]();
+            this[__installFreshDependencies__]();
+            this[__goodbye__]();
         }
 
         /**
          * Initialize setup
-         * @returns {void}
          */
-        initializeSetup() {
+        [__initializeSetup__]() {
             this.sourceRoot(root);
         }
 
         /**
          * Merge template package.json with current package.json
-         * @returns {void}
          */
-        setupPackageJSON() {
+        [__setupPackageJSON__]() {
             const packageJSON = resolvePackageJSON.bind(this)();
             if (R.is(Object, packageJSON) && !R.isEmpty(packageJSON)) {
                 console.debug('setting up package.json');
@@ -88,9 +93,8 @@ const createGenerator = (
 
         /**
          * Copy template files
-         * @returns {void}
          */
-        copyTemplateFiles() {
+        [__copyTemplateFiles__]() {
             const files = resolveFiles.bind(this)();
             if (R.is(Array, files)) {
                 if (!R.isEmpty(files)) {
@@ -115,17 +119,15 @@ const createGenerator = (
 
         /**
          * Finish setting up
-         * @returns {void}
          */
-        finalizeSetup() {
+        [__finalizeSetup__]() {
             this.spawnCommandSync('npm', ['init']);
         }
 
         /**
          * Install fresh dependencies
-         * @returns {void}
          */
-        installFreshDependencies() {
+        [__installFreshDependencies__]() {
             console.debug('installing fresh dependencies');
             if (R.is(Function, resolveFreshDependencies)) {
                 const freshDependencies = resolveFreshDependencies.bind(this)();
@@ -143,11 +145,10 @@ const createGenerator = (
 
         /**
          * Print goodbye
-         * @returns {void}
          */
-        goodbye() {
-            yosay(chalk.hex('#b88a5c')(`Thanks for using the ${chalk.hex('#ffc66d')('@specialblend/supergenerator')}`));
-            console.info('https://github.com/specialblend/supergenerator');
+        [__goodbye__]() {
+            yosay(chalk.hex('#b88a5c')(`Thanks for using the ${chalk.hex('#ffc66d')('@specialblend/node')} generator`));
+            console.info('https://github.com/specialblend/generator-node');
         }
     };
 };
