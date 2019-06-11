@@ -8,25 +8,16 @@ describe('createGenerator', () => {
     describe('when called', () => {
         describe('throws expected error', () => {
             test('when root is empty or nil', () => {
-                expect(() => createGenerator('')).toThrow('Root must be non-empty/nil');
-                expect(() => createGenerator(null)).toThrow('Root must be non-empty/nil');
-            });
-            test.each([
-                'resolvePackageJSON',
-                'resolveFiles',
-                'resolvePrompts',
-                'resolveFreshDependencies',
-                'resolveFreshDevDependencies',
-            ])('when %p is not a Function', resolverName => {
-                expect(() => createGenerator('root', { [resolverName]: true })).toThrow(`${resolverName} must be a function`);
+                expect(() => createGenerator('', {})).toThrow('Root must be non-empty/nil');
+                expect(() => createGenerator(null, {})).toThrow('Root must be non-empty/nil');
             });
         });
         describe('result', () => {
-            const generator = createGenerator('testRoot');
+            const generator = createGenerator('testRoot', {});
             test('is a function', () => {
                 expect(generator).toBeFunction();
             });
-            test('is a class that extends Yeoman generator', () => {
+            test('extends provided generator', () => {
                 expect(generator.prototype).toBeInstanceOf(Generator);
             });
             test('has expected class methods', () => {
